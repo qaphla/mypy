@@ -18,6 +18,7 @@ __all__ = [
     'Any',
     'Callable',
     'Generic',
+    'Literal',
     'Optional',
     'Tuple',
     'Type',
@@ -653,6 +654,26 @@ class Optional(Final, metaclass=OptionalMeta, _root=True):
     """Optional type.
 
     Optional[X] is equivalent to Union[X, type(None)].
+    """
+
+    __slots__ = ()
+
+
+class LiteralMeta(TypingMeta):
+    """Metaclass for Literal."""
+
+    def __new__(cls, name, bases, namespace, _root=False):
+        return super().__new__(cls, name, bases, namespace, _root=_root)
+
+    def __getitem__(self, arg):
+        arg = _type_check(arg, "Literal[t] requires a single type.")
+        return Literal[arg]
+
+
+class Literal(Final, metaclass=LiteralMeta, _root=True):
+    """Literal type.
+
+    Literal[X] is usable as X, but not the other way around.
     """
 
     __slots__ = ()
