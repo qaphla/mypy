@@ -667,7 +667,15 @@ class LiteralMeta(TypingMeta):
         self.__base_type__ = base_type
         return self
 
+    def __repr__(self):
+        r = super().__repr__()
+        if self.__base_type__ is not None:
+            r += '[%s]' % _type_repr(self.__base_type__)
+        return r
+
     def __getitem__(self, arg):
+        if self.__base_type__ is not None:
+            raise TypeError("Cannot re-parameterize %r" % (self,))
         arg = _type_check(arg, "Literal[t] requires a single type.")
         return self.__class__(self.__name__, self.__bases__,
                               dict(self.__dict__), arg, _root=True)

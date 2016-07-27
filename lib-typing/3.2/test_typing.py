@@ -389,7 +389,6 @@ class LiteralTests(BaseTestCase):
         self.assertTrue(issubclass(Literal[int], Literal[int]))
         self.assertFalse(issubclass(int, Literal[int]))
         self.assertFalse(issubclass(Literal[str], Literal[int]))
-        self.assertTrue(issubclass(Literal[int], int))
 
     def test_equality(self):
         self.assertEqual(Literal[int], Literal[int])
