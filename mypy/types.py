@@ -854,11 +854,11 @@ class LiteralType(Type):
 
     base = None  # type: Type
 
-    def __init__(self, base : Type, line : int = -1):
+    def __init__(self, base: Type, line: int = -1) -> None:
         self.base = base
         super().__init__(line)
 
-    def accept(self, visitor: TypeVisitor[T]):
+    def accept(self, visitor: 'TypeVisitor[T]'):
         return visitor.visit_literal_type(self)
 
     def serialize(self) -> JsonDict:

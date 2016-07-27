@@ -4,7 +4,7 @@ from mypy.join import is_similar_callables, combine_similar_callables
 from mypy.types import (
     Type, AnyType, TypeVisitor, UnboundType, Void, ErrorType, NoneTyp, TypeVarType,
     Instance, CallableType, TupleType, ErasedType, TypeList, UnionType, PartialType,
-    DeletedType, UninhabitedType, TypeType
+    DeletedType, UninhabitedType, TypeType, LiteralType
 )
 from mypy.subtypes import is_subtype
 from mypy.nodes import TypeInfo
@@ -258,6 +258,17 @@ class TypeMeetVisitor(TypeVisitor[Type]):
     def visit_partial_type(self, t: PartialType) -> Type:
         # We can't determine the meet of partial types. We should never get here.
         assert False, 'Internal error'
+
+    # t is in the form Literal[a]. If self.s is in the form Literal[b],
+    # we want Literal[a meet b]. Otherwise, the literalness is lost, and
+    # the most general type is (a meet b).
+    def visit_literal_type(self, t: LiteralType) -> Type:
+        if isinstance(self.s, LiteralType):
+            typ = self.meet(t.base, self.s.base)
+            return LiteralType(typ)
+
+        typ = self.meet(self.s, t.base)
+        return typ
 
     def visit_type_type(self, t: TypeType) -> Type:
         if isinstance(self.s, TypeType):

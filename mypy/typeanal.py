@@ -4,8 +4,8 @@ from typing import Callable, cast, List, Tuple
 
 from mypy.types import (
     Type, UnboundType, TypeVarType, TupleType, UnionType, Instance, AnyType, CallableType,
-    Void, NoneTyp, DeletedType, TypeList, TypeVarDef, TypeVisitor, StarType, LiteralType, PartialType,
-    EllipsisType, UninhabitedType, TypeType
+    Void, NoneTyp, DeletedType, TypeList, TypeVarDef, TypeVisitor, StarType,
+    LiteralType, PartialType, EllipsisType, UninhabitedType, TypeType
 )
 from mypy.nodes import (
     BOUND_TVAR, TYPE_ALIAS, UNBOUND_IMPORTED,
