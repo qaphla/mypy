@@ -2,7 +2,7 @@ from typing import Sequence
 
 from mypy.types import (
     Type, UnboundType, ErrorType, AnyType, NoneTyp, Void, TupleType, UnionType, CallableType,
-    TypeVarType, Instance, TypeVisitor, ErasedType, TypeList, Overloaded, PartialType,
+    TypeVarType, Instance, TypeVisitor, ErasedType, TypeList, Overloaded, LiteralType, PartialType,
     DeletedType, UninhabitedType, TypeType
 )
 
@@ -115,6 +115,12 @@ class SameTypeVisitor(TypeVisitor[bool]):
         # XXX This is a test for syntactic equality, not equivalence
         if isinstance(self.right, UnionType):
             return is_same_types(left.items, self.right.items)
+        else:
+            return False
+
+    def visit_literal_type(self, t: LiteralType) -> bool:
+        if isinstance(self.right, LiteralType):
+            return self.right.base == t.base
         else:
             return False
 

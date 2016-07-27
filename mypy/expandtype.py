@@ -3,7 +3,7 @@ from typing import Dict, Tuple, List, cast
 from mypy.types import (
     Type, Instance, CallableType, TypeVisitor, UnboundType, ErrorType, AnyType,
     Void, NoneTyp, TypeVarType, Overloaded, TupleType, UnionType, ErasedType, TypeList,
-    PartialType, DeletedType, UninhabitedType, TypeType, TypeVarId
+    LiteralType, PartialType, DeletedType, UninhabitedType, TypeType, TypeVarId
 )
 
 
@@ -94,6 +94,9 @@ class ExpandTypeVisitor(TypeVisitor[Type]):
         # After substituting for type variables in t.items,
         # some of the resulting types might be subtypes of others.
         return UnionType.make_simplified_union(self.expand_types(t.items), t.line)
+
+    def visit_literal_type(self, t: LiteralType) -> Type:
+        return LiteralType(t.base.accept(self), line=t.line)
 
     def visit_partial_type(self, t: PartialType) -> Type:
         return t

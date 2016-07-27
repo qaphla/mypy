@@ -4,7 +4,7 @@ from typing import List, Optional, cast
 
 from mypy.types import (
     CallableType, Type, TypeVisitor, UnboundType, AnyType, Void, NoneTyp, TypeVarType,
-    Instance, TupleType, UnionType, Overloaded, ErasedType, PartialType, DeletedType,
+    Instance, TupleType, UnionType, Overloaded, ErasedType, LiteralType, PartialType, DeletedType,
     UninhabitedType, TypeType, TypeVarId, is_named_instance
 )
 from mypy.maptype import map_instance_to_supertype
@@ -345,6 +345,11 @@ class ConstraintBuilderVisitor(TypeVisitor[List[Constraint]]):
     def visit_union_type(self, template: UnionType) -> List[Constraint]:
         assert False, ("Unexpected UnionType in ConstraintBuilderVisitor"
                        " (should have been handled in infer_constraints)")
+
+    def visit_literal_type(self, template: LiteralType) -> List[Constraint]:
+        actual = self.actual
+        if isinstance(actual, LiteralType):
+            return template.base.accept(self)
 
     def infer_against_any(self, types: List[Type]) -> List[Constraint]:
         res = []  # type: List[Constraint]

@@ -7,7 +7,7 @@ from mypy.nodes import (MypyFile, SymbolNode, SymbolTable, SymbolTableNode,
                         TypeVarExpr, ClassDef,
                         LDEF, MDEF, GDEF, MODULE_REF)
 from mypy.types import (CallableType, EllipsisType, Instance, Overloaded, TupleType,
-                        TypeList, TypeVarType, UnboundType, UnionType, TypeVisitor,
+                        TypeList, TypeVarType, UnboundType, UnionType, LiteralType, TypeVisitor,
                         UninhabitedType, TypeType)
 from mypy.visitor import NodeVisitor
 
@@ -214,6 +214,9 @@ class TypeFixer(TypeVisitor[None]):
         if ut.items:
             for it in ut.items:
                 it.accept(self)
+
+    def visit_literal_type(self, t: LiteralType) -> None:
+        t.base.accept(self)
 
     def visit_void(self, o: Any) -> None:
         pass  # Nothing to descend into.

@@ -5,7 +5,7 @@ from typing import cast, List
 from mypy.types import (
     Type, AnyType, NoneTyp, Void, TypeVisitor, Instance, UnboundType,
     ErrorType, TypeVarType, CallableType, TupleType, ErasedType, TypeList,
-    UnionType, FunctionLike, Overloaded, PartialType, DeletedType,
+    LiteralType, UnionType, FunctionLike, Overloaded, PartialType, DeletedType,
     UninhabitedType, TypeType
 )
 from mypy.maptype import map_instance_to_supertype
@@ -218,6 +218,14 @@ class TypeJoinVisitor(TypeVisitor[Type]):
             return TupleType(items, t.fallback)
         else:
             return self.default(self.s)
+
+    def visit_literal_type(self, t: LiteralType) -> Type:
+        if isinstance(self.s, LiteralType):
+            return LiteralType(self.join(self.s.base, t.base), line=t.line)
+        elif is_subtype(self.s, t.base):
+            return t.base
+        else:
+            return self.join(self.s, t.base)
 
     def visit_partial_type(self, t: PartialType) -> Type:
         # We only have partial information so we can't decide the join result. We should

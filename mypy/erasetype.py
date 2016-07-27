@@ -2,7 +2,7 @@ from typing import Optional, Container, Callable
 
 from mypy.types import (
     Type, TypeVisitor, UnboundType, ErrorType, AnyType, Void, NoneTyp, TypeVarId,
-    Instance, TypeVarType, CallableType, TupleType, UnionType, Overloaded, ErasedType,
+    Instance, TypeVarType, CallableType, TupleType, UnionType, Overloaded, ErasedType, LiteralType,
     PartialType, DeletedType, TypeTranslator, TypeList, UninhabitedType, TypeType
 )
 
@@ -75,6 +75,9 @@ class EraseTypeVisitor(TypeVisitor[Type]):
 
     def visit_union_type(self, t: UnionType) -> Type:
         return AnyType()        # XXX: return underlying type if only one?
+
+    def visit_literal_type(self, t: LiteralType) -> Type:
+        return LiteralType(t.base.accept(self), line = t.line)
 
     def visit_type_type(self, t: TypeType) -> Type:
         return TypeType(t.item.accept(self), line=t.line)

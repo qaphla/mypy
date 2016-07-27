@@ -1123,6 +1123,9 @@ class TypeTranslator(TypeVisitor[Type]):
     def visit_union_type(self, t: UnionType) -> Type:
         return UnionType(self.translate_types(t.items), t.line)
 
+    def visit_literal_type(self, t: LiteralType) -> Type:
+        return LiteralType(t.base.accept(self), t.line)
+
     def visit_ellipsis_type(self, t: EllipsisType) -> Type:
         return t
 
@@ -1260,6 +1263,9 @@ class TypeStrVisitor(TypeVisitor[str]):
         s = self.list_str(t.items)
         return 'Union[{}]'.format(s)
 
+    def visit_literal_type(self, t: LiteralType) -> str:
+        return 'Literal[{}]'.format(t.base.accept(self))
+
     def visit_partial_type(self, t: PartialType) -> str:
         if t.type is None:
             return '<partial None>'
@@ -1361,6 +1367,9 @@ class TypeQuery(TypeVisitor[bool]):
 
     def visit_union_type(self, t: UnionType) -> bool:
         return self.query_types(t.items)
+
+    def visit_literal_type(self, t: LiteralType) -> bool:
+        return t.base.accept(self)
 
     def visit_overloaded(self, t: Overloaded) -> bool:
         return self.query_types(t.items())
