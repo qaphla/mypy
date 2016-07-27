@@ -47,8 +47,11 @@ def is_subtype(left: Type, right: Type,
     elif isinstance(right, UnionType) and not isinstance(left, UnionType):
         return any(is_subtype(left, item, type_parameter_checker)
                    for item in right.items)
-    elif isinstance(left, LiteralType):
-        return left.base.accept(SubtypeVisitor(right, type_parameter_checker))
+    elif isinstance(right, LiteralType):
+        if isinstance(left, LiteralType):
+            return left.base.accept(SubtypeVisitor(right.base, type_parameter_checker))
+        else:
+            return False
     else:
         return left.accept(SubtypeVisitor(right, type_parameter_checker))
 
