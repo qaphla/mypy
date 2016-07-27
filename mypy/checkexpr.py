@@ -1789,6 +1789,11 @@ def overload_arg_similarity(actual: Type, formal: Type) -> int:
     if isinstance(formal, UnionType):
         return max(overload_arg_similarity(actual, item)
                    for item in formal.items)
+    if isinstance(actual, LiteralType):
+        return overload_arg_similarity(actual.base, formal)
+    if isinstance(formal, LiteralType) and not isinstance(actual, LiteralType):
+        # A nonliteral cannot match a literal at all.
+        return 0
     if isinstance(formal, TypeType):
         if isinstance(actual, TypeType):
             # Since Type[T] is covariant, check if actual = Type[A] is
