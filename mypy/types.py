@@ -849,6 +849,29 @@ class UnionType(Type):
         return UnionType([Type.deserialize(t) for t in data['items']])
 
 
+class LiteralType(Type):
+    """This is a modifier to a type to indicate an expression that is statically computable."""
+
+    base = None  # type: Type
+
+    def __init__(self, base : Type, line : int = -1):
+        self.base = base
+        super().__init__(line)
+
+    def accept(self, visitor: TypeVisitor[T]):
+        return visitor.visit_literal_type(self)
+
+    def serialize(self) -> JsonDict:
+        return {'.class': 'UnionType',
+                'base': self.base.serialize(),
+                }
+
+    @classmethod
+    def deserialize(cls, data: JsonDict) -> 'UnionType':
+        assert data['.class'] == 'UnionType'
+        return LiteralType(Type.deserialize(data['base']))
+
+
 class PartialType(Type):
     """Type such as List[?] where type arguments are unknown, or partial None type.
 
@@ -1023,6 +1046,10 @@ class TypeVisitor(Generic[T]):
 
     @abstractmethod
     def visit_union_type(self, t: UnionType) -> T:
+        pass
+
+    @abstractmethod
+    def visit_literal_type(self, t: LiteralType) -> T:
         pass
 
     @abstractmethod
