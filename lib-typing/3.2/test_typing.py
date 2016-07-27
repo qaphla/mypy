@@ -8,6 +8,7 @@ from unittest import TestCase, main, skipUnless, SkipTest
 from typing import Any
 from typing import TypeVar, AnyStr
 from typing import T, KT, VT  # Not in __all__.
+from typing import Literal
 from typing import Union, Optional
 from typing import Tuple
 from typing import Callable
@@ -379,6 +380,20 @@ class TypeVarUnionTests(BaseTestCase):
         TU = TypeVar('TU', Union[int, float], None)
         self.assertIsSubclass(int, TU)
         self.assertIsSubclass(float, TU)
+
+
+class LiteralTests(BaseTestCase):
+
+    def test_basics(self):
+        self.assertTrue(issubclass(Literal[int], Literal))
+        self.assertTrue(issubclass(Literal[int], Literal[int]))
+        self.assertFalse(issubclass(int, Literal[int]))
+        self.assertFalse(issubclass(Literal[str], Literal[int]))
+        self.assertTrue(issubclass(Literal[int], int))
+
+    def test_equality(self):
+        self.assertEqual(Literal[int], Literal[int])
+        self.assertNotEqual(Literal[int], Literal[str])
 
 
 class TupleTests(BaseTestCase):

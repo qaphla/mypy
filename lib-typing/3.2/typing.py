@@ -662,12 +662,37 @@ class Optional(Final, metaclass=OptionalMeta, _root=True):
 class LiteralMeta(TypingMeta):
     """Metaclass for Literal."""
 
-    def __new__(cls, name, bases, namespace, _root=False):
-        return super().__new__(cls, name, bases, namespace, _root=_root)
+    def __new__(cls, name, bases, namespace, base_type=None, _root=False):
+        self = super().__new__(cls, name, bases, namespace, _root=_root)
+        self.__base_type__ = base_type
+        return self
 
     def __getitem__(self, arg):
         arg = _type_check(arg, "Literal[t] requires a single type.")
-        return Literal[arg]
+        return self.__class__(self.__name__, self.__bases__,
+                              dict(self.__dict__), arg, _root=True)
+
+    def __eq__(self, other):
+        if not isinstance(other, LiteralMeta):
+            return NotImplemented
+        return self.__base_type__ == other.__base_type__
+
+    def __hash__(self):
+        return hash(self.__base_type__)
+
+    def __subclasscheck__(self, cls):
+        if cls is Any:
+            return True
+        if not isinstance(cls, type):
+            return super().__subclasscheck__(cls)  # To TypeError.
+        if not isinstance(cls, LiteralMeta):
+            return super().__subclasscheck__(cls)  # False.
+        if self.__base_type__ is None:
+            return True
+        if cls.__base_type__ is None:
+            return False  # ???
+        # Covariance.
+        return issubclass(cls.__base_type__, self.__base_type__)
 
 
 class Literal(Final, metaclass=LiteralMeta, _root=True):
