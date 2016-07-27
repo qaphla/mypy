@@ -862,13 +862,13 @@ class LiteralType(Type):
         return visitor.visit_literal_type(self)
 
     def serialize(self) -> JsonDict:
-        return {'.class': 'UnionType',
+        return {'.class': 'LiteralType',
                 'base': self.base.serialize(),
                 }
 
     @classmethod
-    def deserialize(cls, data: JsonDict) -> 'UnionType':
-        assert data['.class'] == 'UnionType'
+    def deserialize(cls, data: JsonDict) -> 'LiteralType':
+        assert data['.class'] == 'LiteralType'
         return LiteralType(Type.deserialize(data['base']))
 
 
