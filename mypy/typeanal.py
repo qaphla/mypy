@@ -139,8 +139,7 @@ class TypeAnalyser(TypeVisitor[Type]):
                     self.fail('Literal[...] must have exactly one type argument', t)
                     return AnyType()
                 items = self.anal_array(t.args)
-                # return LiteralType[items]
-                raise NotImplemented
+                return LiteralType(items[0])
             elif sym.kind == TYPE_ALIAS:
                 # TODO: Generic type aliases.
                 return sym.type_override

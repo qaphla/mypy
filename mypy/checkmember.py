@@ -4,7 +4,7 @@ from typing import cast, Callable, List, Dict, Optional
 
 from mypy.types import (
     Type, Instance, AnyType, TupleType, CallableType, FunctionLike, TypeVarId, TypeVarDef,
-    Overloaded, TypeVarType, TypeTranslator, UnionType, PartialType,
+    Overloaded, TypeVarType, TypeTranslator, UnionType, PartialType, LiteralType,
     DeletedType, NoneTyp, TypeType
 )
 from mypy.nodes import TypeInfo, FuncBase, Var, FuncDef, SymbolNode, Context
@@ -91,6 +91,9 @@ def analyze_member_access(name: str,
                    for subtype in typ.items]
         msg.disable_type_names -= 1
         return UnionType.make_simplified_union(results)
+    elif isinstance(typ, LiteralType):
+        return analyze_member_access(name, typ.base, node, is_lvalue, is_super,
+                                     is_operator, builtin_type, not_ready_callback, msg)
     elif isinstance(typ, TupleType):
         # Actually look up from the fallback instance type.
         return analyze_member_access(name, typ.fallback, node, is_lvalue, is_super,

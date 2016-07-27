@@ -5,7 +5,7 @@ from typing import cast, Dict, List, Tuple, Callable, Union, Optional
 from mypy.types import (
     Type, AnyType, CallableType, Overloaded, NoneTyp, Void, TypeVarDef,
     TupleType, Instance, TypeVarId, TypeVarType, ErasedType, UnionType,
-    PartialType, DeletedType, UnboundType, UninhabitedType, TypeType
+    LiteralType, PartialType, DeletedType, UnboundType, UninhabitedType, TypeType
 )
 from mypy.nodes import (
     NameExpr, RefExpr, Var, FuncDef, OverloadedFuncDef, TypeInfo, CallExpr,
@@ -877,27 +877,27 @@ class ExpressionChecker:
 
     def visit_int_expr(self, e: IntExpr) -> Type:
         """Type check an integer literal (trivial)."""
-        return self.named_type('builtins.int')
+        return LiteralType(self.named_type('builtins.int'))
 
     def visit_str_expr(self, e: StrExpr) -> Type:
         """Type check a string literal (trivial)."""
-        return self.named_type('builtins.str')
+        return LiteralType(self.named_type('builtins.str'))
 
     def visit_bytes_expr(self, e: BytesExpr) -> Type:
         """Type check a bytes literal (trivial)."""
-        return self.named_type('builtins.bytes')
+        return LiteralType(self.named_type('builtins.bytes'))
 
     def visit_unicode_expr(self, e: UnicodeExpr) -> Type:
         """Type check a unicode literal (trivial)."""
-        return self.named_type('builtins.unicode')
+        return LiteralType(self.named_type('builtins.unicode'))
 
     def visit_float_expr(self, e: FloatExpr) -> Type:
         """Type check a float literal (trivial)."""
-        return self.named_type('builtins.float')
+        return LiteralType(self.named_type('builtins.float'))
 
     def visit_complex_expr(self, e: ComplexExpr) -> Type:
         """Type check a complex literal."""
-        return self.named_type('builtins.complex')
+        return LiteralType(self.named_type('builtins.complex'))
 
     def visit_ellipsis(self, e: EllipsisExpr) -> Type:
         """Type check '...'."""
