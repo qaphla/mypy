@@ -11,7 +11,7 @@ from typing import cast, List, Dict, Any, Sequence, Iterable, Tuple
 from mypy.errors import Errors
 from mypy.types import (
     Type, CallableType, Instance, TypeVarType, TupleType, UnionType, Void, NoneTyp, AnyType,
-    Overloaded, FunctionLike, DeletedType, TypeType
+    LiteralType, Overloaded, FunctionLike, DeletedType, TypeType
 )
 from mypy.nodes import (
     TypeInfo, Context, MypyFile, op_methods, FuncDef, reverse_type_aliases,
@@ -264,6 +264,8 @@ class MessageBuilder:
                     return s
                 else:
                     return 'union type ({} items)'.format(len(items))
+        elif isinstance(typ, LiteralType):
+            return '"Literal[{}]"'.format(strip_quotes(self.format(typ.base)))
         elif isinstance(typ, Void):
             return 'None'
         elif isinstance(typ, NoneTyp):
