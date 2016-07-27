@@ -263,12 +263,15 @@ class TypeMeetVisitor(TypeVisitor[Type]):
     # we want Literal[a meet b]. Otherwise, the literalness is lost, and
     # the most general type is (a meet b).
     def visit_literal_type(self, t: LiteralType) -> Type:
+        typ = None # type: Type
         if isinstance(self.s, LiteralType):
             typ = self.meet(t.base, self.s.base)
-            return LiteralType(typ)
+        else:
+            # Since being Literal[s] is a stricter constraint than being a s,
+            # any value that is of type (Literal[s] meet t) should be a literal.
+            typ = self.meet(self.s, t.base)
 
-        typ = self.meet(self.s, t.base)
-        return typ
+        return LiteralType(typ)
 
     def visit_type_type(self, t: TypeType) -> Type:
         if isinstance(self.s, TypeType):
