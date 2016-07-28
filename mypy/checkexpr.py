@@ -877,27 +877,27 @@ class ExpressionChecker:
 
     def visit_int_expr(self, e: IntExpr) -> Type:
         """Type check an integer literal (trivial)."""
-        return LiteralType(self.named_type('builtins.int'))
+        return LiteralType(self.named_type('builtins.int'), e)
 
     def visit_str_expr(self, e: StrExpr) -> Type:
         """Type check a string literal (trivial)."""
-        return LiteralType(self.named_type('builtins.str'))
+        return LiteralType(self.named_type('builtins.str'), e)
 
     def visit_bytes_expr(self, e: BytesExpr) -> Type:
         """Type check a bytes literal (trivial)."""
-        return LiteralType(self.named_type('builtins.bytes'))
+        return LiteralType(self.named_type('builtins.bytes'), e)
 
     def visit_unicode_expr(self, e: UnicodeExpr) -> Type:
         """Type check a unicode literal (trivial)."""
-        return LiteralType(self.named_type('builtins.unicode'))
+        return LiteralType(self.named_type('builtins.unicode'), e)
 
     def visit_float_expr(self, e: FloatExpr) -> Type:
         """Type check a float literal (trivial)."""
-        return LiteralType(self.named_type('builtins.float'))
+        return LiteralType(self.named_type('builtins.float'), e)
 
     def visit_complex_expr(self, e: ComplexExpr) -> Type:
         """Type check a complex literal."""
-        return LiteralType(self.named_type('builtins.complex'))
+        return LiteralType(self.named_type('builtins.complex'), e)
 
     def visit_ellipsis(self, e: EllipsisExpr) -> Type:
         """Type check '...'."""

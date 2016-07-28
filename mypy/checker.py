@@ -31,7 +31,7 @@ from mypy.nodes import function_type, method_type, method_type_with_fallback
 from mypy import nodes
 from mypy.types import (
     Type, AnyType, CallableType, Void, FunctionLike, Overloaded, TupleType,
-    Instance, NoneTyp, ErrorType, strip_type,
+    Instance, NoneTyp, ErrorType, strip_type, LiteralType,
     UnionType, TypeVarId, TypeVarType, PartialType, DeletedType, UninhabitedType
 )
 from mypy.sametypes import is_same_type
@@ -902,7 +902,8 @@ class TypeChecker(NodeVisitor[Type]):
 
         Handle all kinds of assignment statements (simple, indexed, multiple).
         """
-        self.check_assignment(s.lvalues[-1], s.rvalue, s.type is None)
+        should_infer = s.type is None or isinstance(s.type, LiteralType)
+        self.check_assignment(s.lvalues[-1], s.rvalue, should_infer)
 
         if len(s.lvalues) > 1:
             # Chained assignment (e.g. x = y = ...).
@@ -911,7 +912,7 @@ class TypeChecker(NodeVisitor[Type]):
                 self.accept(s.rvalue)
             rvalue = self.temp_node(self.type_map[s.rvalue], s)
             for lv in s.lvalues[:-1]:
-                self.check_assignment(lv, rvalue, s.type is None)
+                self.check_assignment(lv, rvalue, should_infer)
 
     def check_assignment(self, lvalue: Node, rvalue: Node, infer_lvalue_type: bool = True) -> None:
         """Type check a single assignment: lvalue = rvalue."""
@@ -919,6 +920,7 @@ class TypeChecker(NodeVisitor[Type]):
             self.check_assignment_to_multiple_lvalues(lvalue.items, rvalue, lvalue,
                                                       infer_lvalue_type)
         else:
+
             lvalue_type, index_lvalue, inferred = self.check_lvalue(lvalue)
             if lvalue_type:
                 if isinstance(lvalue_type, PartialType) and lvalue_type.type is None:
@@ -1265,6 +1267,8 @@ class TypeChecker(NodeVisitor[Type]):
                 return ans
         return known_type
 
+    # TODO(sinan) for now, only propagate literal values for simple assignments.
+    # Will do multiple assignments later if the simple one works.
     def check_simple_assignment(self, lvalue_type: Type, rvalue: Node,
                                 context: Node,
                                 msg: str = messages.INCOMPATIBLE_TYPES_IN_ASSIGNMENT,
@@ -2361,6 +2365,11 @@ def is_unsafe_overlapping_signatures(signature: Type, other: Type) -> bool:
                 t1 = signature.arg_types[i]
                 t2 = other.arg_types[i]
                 if not is_overlapping_types(t1, t2):
+                    return False
+                # Even though literals might be overlapping, we accept them as
+                # typechecking for overloaded functions with literals is deferred
+                # to the callsite, where we have values.
+                if isinstance(t1, LiteralType) and isinstance(t2, LiteralType):
                     return False
             # All arguments types for the smallest common argument count are
             # overlapping => the signature is overlapping. The overlapping is

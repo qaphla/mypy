@@ -516,7 +516,6 @@ class CallableType(FunctionLike):
     definition = None  # type: SymbolNode # For error messages.  May be None.
     # Type variables for a generic function
     variables = None  # type: List[TypeVarDef]
-
     # Is this Callable[..., t] (with literal '...')?
     is_ellipsis_args = False
     # Is this callable constructed for the benefit of a classmethod's 'cls' argument?
@@ -526,6 +525,9 @@ class CallableType(FunctionLike):
     # Defined for signatures that require special handling (currently only value is 'dict'
     # for a signature similar to 'dict')
     special_sig = None  # type: Optional[str]
+
+    # condition for literals
+    condition = None
 
     def __init__(self,
                  arg_types: List[Type],
@@ -544,6 +546,12 @@ class CallableType(FunctionLike):
                  ) -> None:
         if variables is None:
             variables = []
+        # if "__condition__" in arg_names:
+        #     condition_index = arg_names.index("__condition__")
+        #     del arg_names[condition_index]
+        #     del arg_kinds[condition_index]
+        #     del arg_types[condition_index]
+
         self.arg_types = arg_types
         self.arg_kinds = arg_kinds
         self.arg_names = arg_names
@@ -853,9 +861,11 @@ class LiteralType(Type):
     """This is a modifier to a type to indicate an expression that is statically computable."""
 
     base = None  # type: Type
+    value = None # type: Any # TODO(sinan) give this the correct type
 
-    def __init__(self, base: Type, line: int = -1) -> None:
+    def __init__(self, base: Type, value = None, line: int = -1) -> None:
         self.base = base
+        self.value = value
         super().__init__(line)
 
     def accept(self, visitor: 'TypeVisitor[T]'):
@@ -1124,8 +1134,7 @@ class TypeTranslator(TypeVisitor[Type]):
         return UnionType(self.translate_types(t.items), t.line)
 
     def visit_literal_type(self, t: LiteralType) -> Type:
-        return LiteralType(t.base.accept(self), t.line)
-
+        return LiteralType(t.base.accept(self), t.value, t.line)
     def visit_ellipsis_type(self, t: EllipsisType) -> Type:
         return t
 
@@ -1264,7 +1273,7 @@ class TypeStrVisitor(TypeVisitor[str]):
         return 'Union[{}]'.format(s)
 
     def visit_literal_type(self, t: LiteralType) -> str:
-        return 'Literal[{}]'.format(t.base.accept(self))
+        return 'Literal[{},value={}]'.format(t.base.accept(self), t.value)
 
     def visit_partial_type(self, t: PartialType) -> str:
         if t.type is None:
