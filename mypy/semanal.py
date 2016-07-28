@@ -457,11 +457,21 @@ class SemanticAnalyzer(NodeVisitor):
     def analyze_function(self, defn: FuncItem) -> None:
         is_method = self.is_class_scope()
 
+        # filter __condition__ from the arguments, and add it to the function's internal.
+        condition_index = None # type: Optional[int]
+        for index in range(len(defn.arguments)):
+            arg = defn.arguments[index]
+            if arg.variable.name() == "__condition__":
+                condition_index = index
+                break
+
+        if condition_index is not None:
+            defn.condition = defn.arguments[condition_index]
+            del defn.arguments[condition_index]
         tvarnodes = self.add_func_type_variables_to_symbol_table(defn)
         next_function_tvar_id = min([self.next_function_tvar_id()] +
                                     [n.tvar_def.id.raw_id - 1 for n in tvarnodes])
         self.next_function_tvar_id_stack.append(next_function_tvar_id)
-
         if defn.type:
             # Signature must be analyzed in the surrounding scope so that
             # class-level imported names and type variables are in scope.

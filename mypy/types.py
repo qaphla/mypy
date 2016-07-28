@@ -546,11 +546,11 @@ class CallableType(FunctionLike):
                  ) -> None:
         if variables is None:
             variables = []
-        # if "__condition__" in arg_names:
-        #     condition_index = arg_names.index("__condition__")
-        #     del arg_names[condition_index]
-        #     del arg_kinds[condition_index]
-        #     del arg_types[condition_index]
+        if "__condition__" in arg_names:
+             condition_index = arg_names.index("__condition__")
+             del arg_names[condition_index]
+             del arg_kinds[condition_index]
+             del arg_types[condition_index]
 
         self.arg_types = arg_types
         self.arg_kinds = arg_kinds
