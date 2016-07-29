@@ -2152,6 +2152,11 @@ class SymbolTable(Dict[str, SymbolTableNode]):
 def function_type(func: FuncBase, fallback: 'mypy.types.Instance') -> 'mypy.types.FunctionLike':
     if func.type:
         assert isinstance(func.type, mypy.types.FunctionLike)
+        if isinstance(func.type, mypy.types.CallableType):
+            if func.type.has_condition:
+                assert isinstance(func, FuncItem)
+                assert func.arguments[-1].variable.name() == "__condition__"
+                func.type.condition = func.arguments[-1]
         return func.type
     else:
         # Implicit type signature with dynamic types.
