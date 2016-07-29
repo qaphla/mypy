@@ -220,7 +220,13 @@ class Evaluator(NodeVisitor[Expression]):
         return SetExpr([item.accept(self) for item in expr.items])
 
     def visit_index_expr(self, expr: IndexExpr) -> Expression:
-        pass
+        base = expr.base.accept(self)
+        index = expr.index.accept(self)
+        # Currently this only supports indexing using base types (and probably not all of those).
+        # TODO: Support indexing with more types.
+        assert isinstance(base, ListExpr) or isinstance(base, Tuple) or isinstance(base, DictExpr)
+        assert isinstance(index, IntExpr) or isinstance(index, FloatExpr) or isinstance(index, StrExpr)
+        return base.items[index.value]
 
     def visit_type_application(self, expr: TypeApplication) -> Expression:
         pass
