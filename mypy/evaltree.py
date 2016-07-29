@@ -145,6 +145,26 @@ class Evaluator(NodeVisitor[Expression]):
         elif op == '>>':
             op_type = 3
             fn = lambda l, r: l >> r
+
+        elif op == '<':
+            op_type = 4
+            fn = lambda l, r: l < r
+        elif op == '>':
+            op_type = 4
+            fn = lambda l, r: l > r
+        elif op == '<=':
+            op_type = 4
+            fn = lambda l, r: l <= r
+        elif op == '>=':
+            op_type = 4
+            fn = lambda l, r: l >= r
+
+        elif op == '==':
+            op_type = 5
+            fn = lambda l, r: l == r
+        elif op == '!=':
+            op_type = 5
+            fn = lambda l, r: l != r
         else:
             raise NotImplemented
 
@@ -185,6 +205,16 @@ class Evaluator(NodeVisitor[Expression]):
             assert isinstance(left, IntExpr)
             assert isinstance(right, IntExpr)
             return IntExpr(fn(left.value, right.value))
+        elif op_type == 4:
+            assert isinstance(left, IntExpr) or isinstance(left, FloatExpr)
+            assert isinstance(right, IntExpr) or isinstance(right, FloatExpr)
+            return IntExpr(int(fn(left.value, right.value)))
+        elif op_type == 5:
+            assert isinstance(left, IntExpr) or isinstance(left, FloatExpr) or isinstance(left, ComplexExpr) or isinstance(left, StrExpr)
+            assert isinstance(right, IntExpr) or isinstance(right, FloatExpr) or isinstance(right, ComplexExpr) or isinstance(right, StrExpr)
+            return IntExpr(int(fn(left.value, right.value)))
+        else:
+            assert False
 
     def visit_comparison_expr(self, expr: ComparisonExpr) -> Expression:
         results = []
