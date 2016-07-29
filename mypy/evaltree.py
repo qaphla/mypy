@@ -15,7 +15,7 @@ from mypy.nodes import (
     ListComprehension, GeneratorExpr, SetExpr, MypyFile, Decorator,
     ConditionalExpr, ComparisonExpr, TempNode, SetComprehension,
     DictionaryComprehension, ComplexExpr, EllipsisExpr,
-    TypeAliasExpr, BackquoteExpr, ARG_POS, ARG_NAMED, ARG_STAR2,
+    TypeAliasExpr, BackquoteExpr, PromoteExpr, ARG_POS, ARG_NAMED, ARG_STAR2,
 )
 from mypy.nodes import function_type
 from mypy import nodes
@@ -110,10 +110,22 @@ class Evaluator(NodeVisitor[Expression]):
         elif op == '<=':
         elif op == 'in':
         else:
-        pass
-
+            pass
     def visit_comparison_expr(self, expr: ComparisonExpr) -> Expression:
-        pass
+        results = []
+        for index in range(len(expr.operators)):
+            left, right = expr.operands[index], expr.operands[index + 1]
+            operator = expr.operators[index]
+            opExpr = OpExpr(operator, left, right)
+            result = opExpr.accept(self)
+            results.append(result)
+        # Do the and of all comparisons
+        for r in results:
+            if not isinstance(r, IntExpr):
+                raise Exception
+            if r.value == 0:
+                return IntExpr(0)
+        return IntExpr(1)
 
     def visit_cast_expr(self, expr: CastExpr) -> Expression:
         pass
@@ -125,7 +137,12 @@ class Evaluator(NodeVisitor[Expression]):
         pass
 
     def visit_unary_expr(self, expr: UnaryExpr) -> Expression:
-        pass
+        rhs = expr.expr.accept(self)
+        if expr.op == '-':
+            if (not isinstance(rhs, IntExpr)) and (not isinstance(rhs, FloatExpr)):
+                raise Exception
+            rhs.value = -rhs.value
+        return rhs
 
     def visit_list_expr(self, expr: ListExpr) -> Expression:
         pass
@@ -169,13 +186,7 @@ class Evaluator(NodeVisitor[Expression]):
     def visit_backquote_expr(self, expr: BackquoteExpr) -> Expression:
         pass
 
-    def visit_type_var_expr(self, expr: TypeVarExpr) -> Expression:
-        pass
-
     def visit_type_alias_expr(self, expr: TypeAliasExpr) -> Expression:
-        pass
-
-    def visit_namedtuple_expr(self, expr: NamedTupleExpr) -> Expression:
         pass
 
     def visit__promote_expr(self, expr: PromoteExpr) -> Expression:
