@@ -743,7 +743,6 @@ class ExpressionChecker:
             if not evaluate_condition(condition_expr, condition_args):
                 messages.fail("message5", context)
 
-
     def overload_call_target(self, arg_types: List[Type], arg_kinds: List[int],
                              arg_names: List[str],
                              overload: Overloaded, context: Context,
@@ -1829,6 +1828,8 @@ def overload_arg_similarity(actual: Type, formal: Type) -> int:
         return max(overload_arg_similarity(actual, item)
                    for item in formal.items)
     if isinstance(actual, LiteralType):
+        if isinstance(formal, LiteralType):
+            return overload_arg_similarity(actual.base, formal.base)
         return overload_arg_similarity(actual.base, formal)
     if isinstance(formal, LiteralType) and not isinstance(actual, LiteralType):
         # A nonliteral cannot match a literal at all.
