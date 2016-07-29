@@ -2370,7 +2370,16 @@ def is_unsafe_overlapping_signatures(signature: Type, other: Type) -> bool:
                 # typechecking for overloaded functions with literals is deferred
                 # to the callsite, where we have values.
                 if isinstance(t1, LiteralType) and isinstance(t2, LiteralType):
-                    return False
+                    return signature.condition is None or other.condition is None
+
+                if isinstance(t1, LiteralType):
+                    # Here, we have t1 = literal[t] and t2 = t. The signatures overlap
+                    # unsafely if t2's return type is not a supertype of t1's return type,
+                    # as the runtime can't distinguish between the two.
+                    return not is_subtype(signature.ret_type, other.ret_type)
+                if isinstance(t2, LiteralType):
+                    return not is_subtype(other.ret_type, signature.ret_type)
+
             # All arguments types for the smallest common argument count are
             # overlapping => the signature is overlapping. The overlapping is
             # safe if the return types are identical.
