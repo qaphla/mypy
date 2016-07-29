@@ -40,6 +40,18 @@ import mypy.checkexpr
 from mypy import experiments
 
 
+def evaluate_condition(condition_expr: FuncExpr,
+                       condition_args: Dict[str, LiteralType],
+                       messages: Optional[MessageBuilder]
+                       ) -> bool:
+    condition_body = condition_expr.expr()
+    evaluator = Evaluator(condition_args)
+    result = condition_body.accept(evaluator)
+
+    assert isinstance(result, IntExpr)
+    return bool(result.value)
+
+
 class Evaluator(NodeVisitor[Expression]):
 
     def __init__(self, var_ctx: Dict[str, LiteralType]):

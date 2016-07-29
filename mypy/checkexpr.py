@@ -17,6 +17,7 @@ from mypy.nodes import (
     DictionaryComprehension, ComplexExpr, EllipsisExpr,
     TypeAliasExpr, BackquoteExpr, ARG_POS, ARG_NAMED, ARG_STAR2,
 )
+from mypy.evaltree import evaluate_condition
 from mypy.nodes import function_type
 from mypy import nodes
 import mypy.checker
@@ -709,14 +710,6 @@ class ExpressionChecker:
             messages.incompatible_argument(n, m, callee, original_caller_type,
                                            caller_kind, context)
 
-    def evaluate_condition(self,
-                           condition_expr: FuncExpr,
-                           condition_args: Dict[str, LiteralType],
-                           messages: Optional[MessageBuilder]
-                           ) -> None:
-        condition_body = condition_expr.expr()
-        raise NotImplemented
-
     def check_argument_condition(self,
                                  condition: Argument,
                                  arg_kinds: List[int],
@@ -747,7 +740,9 @@ class ExpressionChecker:
                     messages.fail("message4", context)
                 condition_args[arg.variable._name] = arg_types[arg_index]
 
-            evaluate_condition(condition_expr, condition_args, messages)
+            if not evaluate_condition(condition_expr, condition_args):
+                messages.fail("message5", context)
+
 
     def overload_call_target(self, arg_types: List[Type], arg_kinds: List[int],
                              arg_names: List[str],
