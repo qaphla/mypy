@@ -205,6 +205,10 @@ class Evaluator(NodeVisitor[Expression]):
             if (not isinstance(rhs, IntExpr)) and (not isinstance(rhs, FloatExpr)):
                 raise Exception
             rhs.value = -rhs.value
+        if expr.op == '~':
+            if not isinstance(rhs, IntExpr):
+                raise Exception
+            rhs.value = ~rhs.value
         return rhs
 
     def visit_list_expr(self, expr: ListExpr) -> Expression:
