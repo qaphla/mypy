@@ -89,28 +89,91 @@ class Evaluator(NodeVisitor[Expression]):
         left = expr.left.accept(self)
         right = expr.right.accept(self)
         op = expr.op
+
+        # Up-cast to the larger numeric type (or string, for +)
         if op == '+':
-            return left + right
+            op_type = 0
+            fn = lambda l, r: l + r
         elif op == '-':
+            op_type = 0
+            fn = lambda l, r: l - r
         elif op == '*':
+            op_type = 0
+            fn = lambda l, r: l * r
         elif op == '/':
-        elif op == '%':
-        elif op == '//':
+            op_type = 0
+            fn = lambda l, r: l / r
+
+        # int, float, complex -> complex
         elif op == '**':
+            op_type = 1
+            fn = lambda l, r: l ** r
+
+        # int, int -> int or float, float -> float
+        elif op == '//':
+            op_type = 2
+            fn = lambda l, r: l // r
+
+        # int ops -- int, int -> int
+        elif op == '%':
+            op_type = 3
+            fn = lambda l, r: l % r
         elif op == '&':
+            op_type = 3
+            fn = lambda l, r: l & r
         elif op == '|':
+            op_type = 3
+            fn = lambda l, r: l | r
         elif op == '^':
+            op_type = 3
+            fn = lambda l, r: l ^ r
         elif op == '<<':
+            op_type = 3
+            fn = lambda l, r: l << r
         elif op == '>>':
-        elif op == '==':
-        elif op == '!=':
-        elif op == '<':
-        elif op == '>=':
-        elif op == '>':
-        elif op == '<=':
-        elif op == 'in':
+            op_type = 3
+            fn = lambda l, r: l >> r
         else:
-            pass
+            raise NotImplemented
+
+        if op_type == 0:
+            if isinstance(right, ListExpr):
+                if isinstance(left, ListExpr):
+                    return ListExpr(fn(left.items, right.items))
+                else:
+                    return ListExpr(fn(left.value, right.items))
+            elif isinstance(right, TupleExpr):
+                if isinstance(left, TupleExpr):
+                    return TupleExpr(fn(left.items, right.items))
+                else:
+                    return TupleExpr(fn(left.value, right.items))
+            elif isinstance(right, StrExpr):
+                return StrExpr(fn(left.value, right.value))
+            elif isinstance(left, ComplexExpr) or isinstance(right, ComplexExpr):
+                return ComplexExpr(fn(left.value, right.value))
+            elif isinstance(left, FloatExpr) or isinstance(right, FloatExpr):
+                return FloatExpr(fn(left.value, right.value))
+            else:
+                assert isinstance(left, IntExpr) and isinstance(right, IntExpr)
+                return IntExpr(fn(left.value, right.value))
+        elif op_type == 1:
+            assert isinstance(left, IntExpr) or isinstance(left, FloatExpr) or isinstance(left, ComplexExpr)
+            assert isinstance(right, IntExpr) or isinstance(right, FloatExpr) or isinstance(right, ComplexExpr)
+            return ComplexExpr(fn(left.value, right.value))
+        elif op_type == 2:
+            if isinstance(left, IntExpr) and isinstance(right, IntExpr):
+                return IntExpr(fn(left.value, right.value))
+            elif isinstance(left, FloatExpr) and (isinstance(right, FloatExpr) or isinstance(right, IntExpr)):
+                return FloatExpr(fn(left.value, right.value))
+            elif isinstance(right, FloatExpr) and isinstance(right, IntExpr):
+                return FloatExpr(fn(left.value, right.value))
+            else:
+                raise NotImplemented
+        elif op_type == 3:
+            assert isinstance(left, IntExpr)
+            assert isinstance(right, IntExpr)
+            return IntExpr(fn(left.value, right.value))
+
     def visit_comparison_expr(self, expr: ComparisonExpr) -> Expression:
         results = []
         for index in range(len(expr.operators)):
