@@ -94,6 +94,10 @@ def is_overlapping_types(t: Type, s: Type, use_promotions: bool = False) -> bool
     if isinstance(s, UnionType):
         return any(is_overlapping_types(t, item)
                    for item in s.items)
+    if isinstance(t, LiteralType):
+        return is_overlapping_types(t.base, s)
+    if isinstance(s, LiteralType):
+        return is_overlapping_types(t, s.base)
     if isinstance(t, TypeType) and isinstance(s, TypeType):
         # If both types are TypeType, compare their inner types.
         return is_overlapping_types(t.item, s.item, use_promotions)

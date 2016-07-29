@@ -8,14 +8,14 @@ from mypy.types import (
     LiteralType, PartialType, DeletedType, UnboundType, UninhabitedType, TypeType
 )
 from mypy.nodes import (
-    NameExpr, RefExpr, Var, FuncDef, OverloadedFuncDef, TypeInfo, CallExpr,
+    Argument, NameExpr, RefExpr, Var, FuncDef, OverloadedFuncDef, TypeInfo, CallExpr,
     Node, MemberExpr, IntExpr, StrExpr, BytesExpr, UnicodeExpr, FloatExpr,
     OpExpr, UnaryExpr, IndexExpr, CastExpr, RevealTypeExpr, TypeApplication, ListExpr,
     TupleExpr, DictExpr, FuncExpr, SuperExpr, SliceExpr, Context,
     ListComprehension, GeneratorExpr, SetExpr, MypyFile, Decorator,
     ConditionalExpr, ComparisonExpr, TempNode, SetComprehension,
     DictionaryComprehension, ComplexExpr, EllipsisExpr,
-    TypeAliasExpr, BackquoteExpr, ARG_POS, ARG_NAMED, ARG_STAR2
+    TypeAliasExpr, BackquoteExpr, ARG_POS, ARG_NAMED, ARG_STAR2,
 )
 from mypy.nodes import function_type
 from mypy import nodes
@@ -251,6 +251,10 @@ class ExpressionChecker:
             self.check_argument_types(arg_types, arg_kinds, callee,
                                       formal_to_actual, context,
                                       messages=arg_messages)
+
+            if callee.condition is not None:
+                self.check_argument_condition(callee.condition, arg_kinds, arg_names,
+                                              arg_types, formal_to_actual, context, self.msg)
 
             if (callee.is_type_obj() and (len(arg_types) == 1)
                     and is_equivalent(callee.ret_type, self.named_type('builtins.type'))):
@@ -704,6 +708,46 @@ class ExpressionChecker:
         elif not is_subtype(caller_type, callee_type):
             messages.incompatible_argument(n, m, callee, original_caller_type,
                                            caller_kind, context)
+
+    def evaluate_condition(self,
+                           condition_expr: FuncExpr,
+                           condition_args: List[Argument],
+                           messages: Optional[MessageBuilder]
+                           ) -> None:
+        condition_body = condition_expr.expr()
+        raise NotImplemented
+
+    def check_argument_condition(self,
+                                 condition: Argument,
+                                 arg_kinds: List[int],
+                                 arg_names: Optional[List[str]],
+                                 arg_types: List[Node],
+                                 formal_to_actual: List[List[int]],
+                                 context: Context,
+                                 messages: Optional[MessageBuilder]) -> None:
+        messages = messages or self.msg  # type: MessageBuilder
+        # There should be an actual expression backing the condition if the condition exists.
+        assert condition.initializater is not None
+        condition_expr = condition.initializater  # type: Expr
+
+        # For now, we only accept conditions on positional arguments.
+        if any(kind != ARG_POS for kind in arg_kinds):
+            messages.fail("message1", context)
+
+        condition_args = []
+        # The condition really should be a lambda. Perhaps this could be extended later to any function?
+        if not isinstance(condition_expr, FuncExpr):
+            messages.fail("message2", context)
+        else:
+            for arg in condition_expr.arguments:
+                arg_index = arg_names.index(arg.variable._name)
+                if arg_index is None:
+                    messages.fail("message3", context)
+                if not isinstance(arg_types[arg_index], LiteralType):
+                    messages.fail("message4", context)
+                condition_args.append(arg_types[arg_index])
+
+            evaluate_condition(condition_expr, condition_args, messages)
 
     def overload_call_target(self, arg_types: List[Type], arg_kinds: List[int],
                              arg_names: List[str],

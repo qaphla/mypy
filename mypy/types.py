@@ -527,7 +527,7 @@ class CallableType(FunctionLike):
     special_sig = None  # type: Optional[str]
 
     # condition for literals
-    condition = None
+    condition = None  # type: Optional[Argument]
 
     def __init__(self,
                  arg_types: List[Type],
