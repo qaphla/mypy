@@ -5,7 +5,7 @@ from typing import Callable, cast, List, Tuple
 from mypy.types import (
     Type, UnboundType, TypeVarType, TupleType, UnionType, Instance, AnyType, CallableType,
     Void, NoneTyp, DeletedType, TypeList, TypeVarDef, TypeVisitor, StarType,
-    LiteralType, PartialType, EllipsisType, UninhabitedType, TypeType
+    LiteralType, PartialType, EllipsisType, UninhabitedType, TypeType, ConditionType,
 )
 from mypy.nodes import (
     BOUND_TVAR, TYPE_ALIAS, UNBOUND_IMPORTED,
@@ -239,6 +239,9 @@ class TypeAnalyser(TypeVisitor[Type]):
         self.fail("Unexpected '...'", t)
         return AnyType()
 
+    def visit_condition_type(self, t: ConditionType) -> Type:
+        return AnyType()
+
     def visit_type_type(self, t: TypeType) -> Type:
         return TypeType(t.item.accept(self), line=t.line)
 
@@ -397,6 +400,8 @@ class TypeAnalyserPass3(TypeVisitor[None]):
     def visit_star_type(self, t: StarType) -> None:
         t.type.accept(self)
 
+    def visit_condition_type(self, t: ConditionType) -> None:
+        pass
     # Other kinds of type are trivial, since they are atomic (or invalid).
 
     def visit_unbound_type(self, t: UnboundType) -> None:

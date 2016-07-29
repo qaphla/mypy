@@ -463,7 +463,6 @@ class TypeChecker(NodeVisitor[Type]):
                 # Store argument types.
                 for i in range(len(typ.arg_types)):
                     arg_type = typ.arg_types[i]
-
                     # Refuse covariant parameter type variables
                     if isinstance(arg_type, TypeVarType):
                         if arg_type.variance == COVARIANT:

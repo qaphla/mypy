@@ -72,7 +72,8 @@ from mypy.errors import Errors, report_internal_error
 from mypy.types import (
     NoneTyp, CallableType, Overloaded, Instance, Type, TypeVarType, AnyType,
     FunctionLike, UnboundType, TypeList, ErrorType, TypeVarDef,
-    replace_leading_arg_type, TupleType, UnionType, StarType, EllipsisType
+    replace_leading_arg_type, TupleType, UnionType, StarType, EllipsisType,
+    ConditionType
 )
 from mypy.nodes import function_type, implicit_module_attrs
 from mypy.typeanal import TypeAnalyser, TypeAnalyserPass3, analyze_type_alias
@@ -397,6 +398,8 @@ class SemanticAnalyzer(NodeVisitor):
             pass
         elif isinstance(type, EllipsisType) or isinstance(type, TupleType):
             pass
+        elif isinstance(type, ConditionType):
+            pass
         else:
             assert False, 'Unsupported type %s' % type
         return result
@@ -467,7 +470,6 @@ class SemanticAnalyzer(NodeVisitor):
 
         if condition_index is not None:
             defn.condition = defn.arguments[condition_index]
-            del defn.arguments[condition_index]
         tvarnodes = self.add_func_type_variables_to_symbol_table(defn)
         next_function_tvar_id = min([self.next_function_tvar_id()] +
                                     [n.tvar_def.id.raw_id - 1 for n in tvarnodes])

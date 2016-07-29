@@ -502,6 +502,27 @@ class FunctionLike(Type):
 
 _dummy = object()  # type: Any
 
+class ConditionType(Type):
+    """The type ... (ellipsis).
+
+    This is not a real type but a syntactic AST construct, used in Callable[..., T], for example.
+
+    A semantically analyzed type will never have ellipsis types.
+    """
+    def __init__(self, line: int = -1) -> None:
+        super().__init__(line)
+
+    def accept(self, visitor: 'TypeVisitor[T]') -> T:
+        return visitor.visit_condition_type(self)
+
+    def serialize(self) -> JsonDict:
+        return {'.class': 'EllipsisType'}
+
+    @classmethod
+    def deserialize(self, data: JsonDict) -> 'EllipsisType':
+        assert data['.class'] == 'EllipsisType'
+        return ConditionType()
+
 
 class CallableType(FunctionLike):
     """Type of a non-overloaded callable object (function)."""
@@ -552,9 +573,7 @@ class CallableType(FunctionLike):
         if "__condition__" in arg_names:
              condition_index = arg_names.index("__condition__")
              self.has_condition = True
-             del arg_names[condition_index]
-             del arg_kinds[condition_index]
-             del arg_types[condition_index]
+             arg_types[condition_index] = ConditionType()
         if has_condition is not None and has_condition:
             self.has_condition = has_condition
 
@@ -1228,7 +1247,8 @@ class TypeStrVisitor(TypeVisitor[str]):
         else:
             # Named type variable type.
             return '{}`{}'.format(t.name, t.id)
-
+    def visit_condition_type(self, t: ConditionType) -> str:
+        return "Condition"
     def visit_callable_type(self, t: CallableType) -> str:
         s = ''
         bare_asterisk = False

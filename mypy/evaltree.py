@@ -165,6 +165,13 @@ class Evaluator(NodeVisitor[Expression]):
         elif op == '!=':
             op_type = 5
             fn = lambda l, r: l != r
+        # TODO(sinan) HACK!
+        elif op == 'in':
+            op_type = 6
+            fn = lambda l, r: l in r
+        elif op == 'not in':
+            op_type = 6
+            fn = lambda l, r: l not in r
         else:
             raise NotImplemented
 
@@ -212,6 +219,9 @@ class Evaluator(NodeVisitor[Expression]):
         elif op_type == 5:
             assert isinstance(left, IntExpr) or isinstance(left, FloatExpr) or isinstance(left, ComplexExpr) or isinstance(left, StrExpr)
             assert isinstance(right, IntExpr) or isinstance(right, FloatExpr) or isinstance(right, ComplexExpr) or isinstance(right, StrExpr)
+            return IntExpr(int(fn(left.value, right.value)))
+        elif op_type == 6:
+            assert(isinstance(left, StrExpr) and isinstance(right, StrExpr))
             return IntExpr(int(fn(left.value, right.value)))
         else:
             assert False

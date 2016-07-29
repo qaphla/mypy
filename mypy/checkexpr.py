@@ -254,7 +254,7 @@ class ExpressionChecker:
                                       messages=arg_messages)
 
             if callee.condition is not None:
-                self.check_argument_condition(callee.condition, arg_kinds, arg_names,
+                self.check_argument_condition(callee.condition, arg_kinds, callee.arg_names,
                                               arg_types, formal_to_actual, context, self.msg)
 
             if (callee.is_type_obj() and (len(arg_types) == 1)
@@ -266,7 +266,6 @@ class ExpressionChecker:
                 self.chk.store_type(callable_node, callee)
             return callee.ret_type, callee
         elif isinstance(callee, Overloaded):
-            print("I am here")
             # Type check arguments in empty context. They will be checked again
             # later in a context derived from the signature; these types are
             # only used to pick a signature variant.
@@ -719,15 +718,12 @@ class ExpressionChecker:
                                  formal_to_actual: List[List[int]],
                                  context: Context,
                                  messages: Optional[MessageBuilder]) -> bool:
+
         messages = messages or self.msg  # type: MessageBuilder
         # There should be an actual expression backing the condition if the condition exists.
-        assert condition.initializater is not None
-        condition_expr = condition.initializater  # type: Expr
-
-        # For now, we only accept conditions on positional arguments.
-        if any(kind != ARG_POS for kind in arg_kinds):
-            messages.fail("message1", context)
-            return False
+        print(condition.__dict__)
+        assert condition.initializer is not None
+        condition_expr = condition.initializer  # type: Expr
 
         condition_args = {}
         # The condition really should be a lambda. Perhaps this could be extended later to any function?
@@ -736,7 +732,14 @@ class ExpressionChecker:
             return False
         else:
             for arg in condition_expr.arguments:
-                arg_index = arg_names.index(arg.variable._name)
+                print(arg.variable._name)
+                print(arg_names)
+                for a in arg_names:
+                    print(a, a == arg.variable.name())
+                name = str(arg.variable.name())
+
+                arg_index = arg_names.index(name)
+                print("{} is not in {}: {}".format(arg.variable.name(), arg_names, arg.variable.name() in arg_names))
                 if arg_index is None:
                     messages.fail("message3", context)
                     return False
@@ -745,7 +748,7 @@ class ExpressionChecker:
                     return False
                 condition_args[arg.variable._name] = arg_types[arg_index]
 
-            if not evaluate_condition(condition_expr, condition_args):
+            if not evaluate_condition(condition_expr, condition_args, messages):
                 messages.fail("message5", context)
                 return False
         return True
@@ -765,6 +768,7 @@ class ExpressionChecker:
         match = []  # type: List[CallableType]
         best_match = 0
         for typ in overload.items():
+            print("Call target {}".format(overload.__dict__))
             similarity = self.erased_signature_similarity(arg_types, arg_kinds, arg_names,
                                                           typ, context=context)
             if similarity > 0 and similarity >= best_match:
@@ -823,12 +827,12 @@ class ExpressionChecker:
                                                   callee.arg_kinds,
                                                   callee.arg_names,
                                                   lambda i: arg_types[i])
-
+        print("FTA: {}".format(formal_to_actual))
         if not self.check_argument_count(callee, arg_types, arg_kinds, arg_names,
                                          formal_to_actual, None, None):
             # Too few or many arguments -> no match.
             return 0
-        if callee.has_condition and not self.check_argument_condition(callee.condition, arg_kinds, arg_names,
+        if callee.has_condition and not self.check_argument_condition(callee.condition, callee.arg_kinds, callee.arg_names,
                                      arg_types, formal_to_actual, context, self.msg):
             return 0
 
