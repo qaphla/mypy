@@ -6,7 +6,7 @@ from typing import (
 )
 
 import mypy.nodes
-from mypy.nodes import INVARIANT, SymbolNode
+from mypy.nodes import INVARIANT, SymbolNode, Expression
 
 from mypy import experiments
 
@@ -861,9 +861,9 @@ class LiteralType(Type):
     """This is a modifier to a type to indicate an expression that is statically computable."""
 
     base = None  # type: Type
-    value = None # type: Any # TODO(sinan) give this the correct type
+    value = None # type: Optional[Expression]
 
-    def __init__(self, base: Type, value = None, line: int = -1) -> None:
+    def __init__(self, base: Type, value=None, line: int = -1) -> None:
         self.base = base
         self.value = value
         super().__init__(line)

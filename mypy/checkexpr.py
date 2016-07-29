@@ -711,7 +711,7 @@ class ExpressionChecker:
 
     def evaluate_condition(self,
                            condition_expr: FuncExpr,
-                           condition_args: List[Argument],
+                           condition_args: Dict[str, LiteralType],
                            messages: Optional[MessageBuilder]
                            ) -> None:
         condition_body = condition_expr.expr()
@@ -734,7 +734,7 @@ class ExpressionChecker:
         if any(kind != ARG_POS for kind in arg_kinds):
             messages.fail("message1", context)
 
-        condition_args = []
+        condition_args = {}
         # The condition really should be a lambda. Perhaps this could be extended later to any function?
         if not isinstance(condition_expr, FuncExpr):
             messages.fail("message2", context)
@@ -745,7 +745,7 @@ class ExpressionChecker:
                     messages.fail("message3", context)
                 if not isinstance(arg_types[arg_index], LiteralType):
                     messages.fail("message4", context)
-                condition_args.append(arg_types[arg_index])
+                condition_args[arg.variable._name] = arg_types[arg_index]
 
             evaluate_condition(condition_expr, condition_args, messages)
 
