@@ -11,5 +11,10 @@ def print_nodes(file: str) -> None:
         print(d.expr.accept(evaluator))
 
 def test_evaltree():
-    f = "1 + 2\n3 - 4\nlambda x: x + 1"
+    expressions = ["1 + 2",
+                   "3 < 4",
+                   "lambda x: x + 1",
+                   "lambda x: x < 3",
+                   "-7"]
+    f = "\n".join(expressions)
     print_nodes(f)
