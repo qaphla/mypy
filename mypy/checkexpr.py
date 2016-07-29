@@ -266,6 +266,7 @@ class ExpressionChecker:
                 self.chk.store_type(callable_node, callee)
             return callee.ret_type, callee
         elif isinstance(callee, Overloaded):
+            print("I am here")
             # Type check arguments in empty context. They will be checked again
             # later in a context derived from the signature; these types are
             # only used to pick a signature variant.
@@ -821,9 +822,12 @@ class ExpressionChecker:
                                          formal_to_actual, None, None):
             # Too few or many arguments -> no match.
             return 0
+        if callee.has_condition and not self.check_argument_condition(callee.condition, arg_kinds, arg_names,
+                                     arg_types, formal_to_actual, context, self.msg):
+            return 0
+
 
         similarity = 2
-
         def check_arg(caller_type: Type, original_caller_type: Type, caller_kind: int,
                       callee_type: Type, n: int, m: int, callee: CallableType,
                       context: Context, messages: MessageBuilder) -> None:
