@@ -248,7 +248,8 @@ class Evaluator(NodeVisitor[Expression]):
         pass
 
     def visit_func_expr(self, expr: FuncExpr) -> Expression:
-        pass
+        body = expr.expr()
+        return body.accept(self)
 
     def visit_list_comprehension(self, expr: ListComprehension) -> Expression:
         pass
