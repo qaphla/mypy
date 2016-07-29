@@ -718,7 +718,7 @@ class ExpressionChecker:
                                  arg_types: List[Node],
                                  formal_to_actual: List[List[int]],
                                  context: Context,
-                                 messages: Optional[MessageBuilder]) -> None:
+                                 messages: Optional[MessageBuilder]) -> bool:
         messages = messages or self.msg  # type: MessageBuilder
         # There should be an actual expression backing the condition if the condition exists.
         assert condition.initializater is not None
@@ -727,22 +727,28 @@ class ExpressionChecker:
         # For now, we only accept conditions on positional arguments.
         if any(kind != ARG_POS for kind in arg_kinds):
             messages.fail("message1", context)
+            return False
 
         condition_args = {}
         # The condition really should be a lambda. Perhaps this could be extended later to any function?
         if not isinstance(condition_expr, FuncExpr):
             messages.fail("message2", context)
+            return False
         else:
             for arg in condition_expr.arguments:
                 arg_index = arg_names.index(arg.variable._name)
                 if arg_index is None:
                     messages.fail("message3", context)
+                    return False
                 if not isinstance(arg_types[arg_index], LiteralType):
                     messages.fail("message4", context)
+                    return False
                 condition_args[arg.variable._name] = arg_types[arg_index]
 
             if not evaluate_condition(condition_expr, condition_args):
                 messages.fail("message5", context)
+                return False
+        return True
 
     def overload_call_target(self, arg_types: List[Type], arg_kinds: List[int],
                              arg_names: List[str],
