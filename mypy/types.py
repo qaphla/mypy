@@ -529,6 +529,8 @@ class CallableType(FunctionLike):
     # condition for literals
     condition = None  # type: Optional[Argument]
 
+    has_condition = False # type: bool
+
     def __init__(self,
                  arg_types: List[Type],
                  arg_kinds: List[int],
@@ -543,14 +545,18 @@ class CallableType(FunctionLike):
                  implicit: bool = False,
                  is_classmethod_class: bool = False,
                  special_sig: Optional[str] = None,
+                 has_condition: Optional[bool] = None,
                  ) -> None:
         if variables is None:
             variables = []
         if "__condition__" in arg_names:
              condition_index = arg_names.index("__condition__")
+             self.has_condition = True
              del arg_names[condition_index]
              del arg_kinds[condition_index]
              del arg_types[condition_index]
+        if has_condition is not None and has_condition:
+            self.has_condition = has_condition
 
         self.arg_types = arg_types
         self.arg_kinds = arg_kinds
@@ -579,7 +585,8 @@ class CallableType(FunctionLike):
                       variables: List[TypeVarDef] = _dummy,
                       line: int = _dummy,
                       is_ellipsis_args: bool = _dummy,
-                      special_sig: Optional[str] = _dummy) -> 'CallableType':
+                      special_sig: Optional[str] = _dummy,
+                      has_condition: Optional[bool] = _dummy) -> 'CallableType':
         return CallableType(
             arg_types=arg_types if arg_types is not _dummy else self.arg_types,
             arg_kinds=arg_kinds if arg_kinds is not _dummy else self.arg_kinds,
@@ -595,6 +602,7 @@ class CallableType(FunctionLike):
             implicit=self.implicit,
             is_classmethod_class=self.is_classmethod_class,
             special_sig=special_sig if special_sig is not _dummy else self.special_sig,
+            has_condition=has_condition if has_condition is not _dummy else self.has_condition,
         )
 
     def is_type_obj(self) -> bool:

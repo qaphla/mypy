@@ -2370,7 +2370,7 @@ def is_unsafe_overlapping_signatures(signature: Type, other: Type) -> bool:
                 # typechecking for overloaded functions with literals is deferred
                 # to the callsite, where we have values.
                 if isinstance(t1, LiteralType) and isinstance(t2, LiteralType):
-                    return signature.condition is None or other.condition is None
+                    return (not signature.has_condition) or (not other.has_condition)
 
                 if isinstance(t1, LiteralType):
                     # Here, we have t1 = literal[t] and t2 = t. The signatures overlap
