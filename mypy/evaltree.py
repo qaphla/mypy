@@ -138,9 +138,15 @@ class Evaluator(NodeVisitor[Expression]):
 
         if op_type == 0:
             if isinstance(right, ListExpr):
-                return ListExpr(fn(left.value, right.value))
+                if isinstance(left, ListExpr):
+                    return ListExpr(fn(left.items, right.items))
+                else:
+                    return ListExpr(fn(left.value, right.items))
             elif isinstance(right, TupleExpr):
-                return TupleExpr(fn(left.value, right.value))
+                if isinstance(left, TupleExpr):
+                    return TupleExpr(fn(left.items, right.items))
+                else:
+                    return TupleExpr(fn(left.value, right.items))
             elif isinstance(right, StrExpr):
                 return StrExpr(fn(left.value, right.value))
             elif isinstance(left, ComplexExpr) or isinstance(right, ComplexExpr):
@@ -167,7 +173,6 @@ class Evaluator(NodeVisitor[Expression]):
             assert isinstance(left, IntExpr)
             assert isinstance(right, IntExpr)
             return IntExpr(fn(left.value, right.value))
-            return FloatExpr(fn(left.value, right.value))
 
     def visit_comparison_expr(self, expr: ComparisonExpr) -> Expression:
         results = []
